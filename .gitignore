@@ -3,3 +3,4 @@
 .DS_Store
 *.zip
 *.ipynb_checkpoints*
+*.h5
