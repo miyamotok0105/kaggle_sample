@@ -1,3 +1,4 @@
+# encoding: utf-8
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,6 +32,11 @@ classes = set(df.Id.tolist())
 print(list(classes)[:5])
 print(len(classes))
 print(type(classes))
+
+import pandas as pd
+
+df = pd.read_csv('train.csv')
+print(df.head())
 
 df.Id.unique()
 
@@ -272,7 +278,6 @@ for epoch in range(num_epochs):
 #==================================================
 
 import matplotlib.pyplot as plt
-%matplotlib inline
 
 plt.figure()
 plt.plot(range(num_epochs), train_loss_list, color='blue', linestyle='-', label='train_loss')
