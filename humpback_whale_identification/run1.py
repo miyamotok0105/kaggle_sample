@@ -11,6 +11,20 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import time
 import os
+
+import torch
+import torchvision
+import torch.nn as nn
+import torch.nn.init as init
+import torch.optim as optim
+import torch.nn.functional as F
+from torch.optim import lr_scheduler
+from torchvision import datasets, models, transforms
+import time
+import os
+import numpy as np
+from matplotlib import pyplot as plt
+
 print(torch.cuda.is_available())
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -55,63 +69,58 @@ df.head()
 
 #==================================================
 root = './'
-class CustomDataset(torch.utils.data.Dataset):  
-  
-    def __init__(self, root, transform=None, train=True):
-        # 指定する場合は前処理クラスを受け取ります。
-        self.transform = transform
-        # 画像とラベルの一覧を保持するリスト
-        self.images = []
-        self.labels = []
-        # ルートフォルダーパス
-        root = "./"
-        # 訓練の場合と検証の場合でフォルダわけ
-        # 画像を読み込むファイルパスを取得します。
-        if train == True:
-            root_path = os.path.join(root, 'train')
-        else:
-            root_path = os.path.join(root, 'test')
-        # 画像一覧を取得します。
-        self.images = df.Image.tolist()
-        self.images = [os.path.join(root_path, file) for file in self.images]
-        self.labels = df.label.tolist()        
+class CustomDataset(torch.utils.data.Dataset):
 
-    def __getitem__(self, index):
-        # インデックスを元に画像のファイルパスとラベルを取得します。
-        image = self.images[index]
-        label = self.labels[index]
-        # 画像ファイルパスから画像を読み込みます。
-        with open(image, 'rb') as f:
-            image = Image.open(f)
-            image = image.convert('RGB')
-        # 前処理がある場合は前処理をいれます。
-        if self.transform is not None:
-            image = self.transform(image)
-        # 画像とラベルのペアを返却します。
-        return image, label
-        
-    def __len__(self):
-        # ここにはデータ数を指定します。
-        return len(self.images)
-
-
-#==================================================
-# 訓練データのプロット
-custom_dataset = CustomDataset(root, to_tensor_transforms, train=True)
-custom_loader = torch.utils.data.DataLoader(dataset=custom_dataset,
-                                           batch_size=5, 
-                                           shuffle=True)
-
-def show(img):
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1,2,0)), interpolation='nearest')
-
-for i, (images, labels) in enumerate(custom_loader):
-    print(labels.numpy())
-    # show(torchvision.utils.make_grid(images, padding=1))
-    # plt.axis('off')
+  def __init__(self, root, transform=None, train=True):
+    # 指定する場合は前処理クラスを受け取ります。
+    self.transform = transform
+    # 画像とラベルの一覧を保持するリスト
+    self.all_images = []
+    self.all_labels = []
+    self.images = []
+    self.labels = []
+    # ルートフォルダーパス
+    root = "./"
+    # 訓練の場合と検証の場合でフォルダわけ
+    # 画像を読み込むファイルパスを取得します。
+    root_path = os.path.join(root, 'train')
+    self.all_images = df.Image.tolist()
+    self.all_images = [os.path.join(root_path, file) for file in self.all_images]
+    self.all_labels = df.label.tolist()
+    slice_index = int(len(df.Image)*0.9)
     
-    break
+    if train == True:
+      self.images = self.all_images[:slice_index]
+      self.labels = self.all_labels[:slice_index]
+      #             print(self.images[:self.slice_index])
+      #             print(self.labels[:self.slice_index])
+    else:
+      self.images = self.all_images[slice_index:]
+      self.labels = self.all_labels[slice_index:]
+      #             print(self.images[self.slice_index:])
+      #             print(self.labels[self.slice_index:])
+    print("len ", len(self.images))
+    # 画像一覧を取得します。
+      
+  def __getitem__(self, index):
+    # インデックスを元に画像のファイルパスとラベルを取得します。
+    image = self.images[index]
+    label = self.labels[index]
+    # 画像ファイルパスから画像を読み込みます。
+    with open(image, 'rb') as f:
+      image = Image.open(f)
+      image = image.convert('RGB')
+    # 前処理がある場合は前処理をいれます。
+    if self.transform is not None:
+      image = self.transform(image)
+    # 画像とラベルのペアを返却します。
+    return image, label
+      
+  def __len__(self):
+    # ここにはデータ数を指定します。
+    return len(self.images)
+        
+#==================================================
 
 #==================================================
 #画像の前処理を定義
@@ -150,6 +159,7 @@ for i, (images, labels) in enumerate(train_loader):
 #==================================================
 
 #==================================================
+
 
 #クラス数
 num_classes = len(classes)
