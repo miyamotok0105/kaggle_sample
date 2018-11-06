@@ -27,16 +27,18 @@ print("training ", len(train))
 test = os.listdir("test")
 print("test ", len(test))
 
+import pandas as pd
+
+df = pd.read_csv('train.csv')
+print(df.head())
+
 #クラス数
 classes = set(df.Id.tolist())
 print(list(classes)[:5])
 print(len(classes))
 print(type(classes))
 
-import pandas as pd
 
-df = pd.read_csv('train.csv')
-print(df.head())
 
 df.Id.unique()
 
